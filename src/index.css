@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* HSN Sara Font */
+@font-face {
+  font-family: "HSN Sara";
+  src: url("./assets/fonts/HSN-Sara-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HSN Sara";
+  src: url("./assets/fonts/HSN-Sara-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+    /* Add other CSS variables as needed for the new colors, e.g., */
+    --border: 155 30% 85%;
+    --input: 155 30% 85%;
+    --ring: 173 80% 40%; /* Adjusted to match your primary */
+    --background: 162 100% 97%; /* Approximate for primary-50 */
+    --foreground: 173 80% 15%;
+    --secondary: 173 80% 40%;
+    --secondary-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --muted: 162 40% 90%;
+    --muted-foreground: 173 30% 40%;
+    --accent: 173 80% 40%;
+    --accent-foreground: 173 80% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 173 80% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 173 80% 15%;
+  }
+
+  body {
+    @apply bg-gradient-to-br from-primary-50 to-primary-100 min-h-screen;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-400 hover:bg-primary-500 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply bg-white hover:bg-primary-50 text-primary-600 font-semibold py-2 px-6 rounded-lg transition-all duration-200 border-2 border-primary-400;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-lg border-2 border-primary-200 focus:border-primary-400 focus:outline-none transition-all duration-200 bg-white;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6;
+  }
+}
