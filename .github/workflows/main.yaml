@@ -1,0 +1,32 @@
+name: Node.js CI
+
+on:
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  id-token: write # required for OIDC authentication
+  contents: read # required for checkout
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [23.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5.0.0
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
