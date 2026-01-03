@@ -3,6 +3,10 @@ FROM node:23-alpine AS builder
 
 WORKDIR /app
 
+# Build argument for API URL - injected by Cloud Build
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+
 # Copy package files for caching
 COPY package*.json ./
 RUN npm install -g npm@11.6.1
