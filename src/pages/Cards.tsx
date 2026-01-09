@@ -1,25 +1,31 @@
+/* eslint-disable react-hooks/immutability */
 import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useCookies } from "react-cookie";
+import axios from "axios";
 import Layout from "../components/Layout";
+import { useFetch, usePOST, useDelete } from "../hooks/useApi";
+import { API_KEYS, API_ENDPOINTS } from "../config/apiKeys";
+import apiConfig from "../config/api";
 
 interface Card {
-  id: string;
+  id?: string;
   title: string;
+  subtitle?: string;
   description: string;
-  image: string;
   link: string;
+  badge?: string;
+  preview_url?: string;
+  is_coming_soon?: boolean;
+  order?: number;
+  is_active?: boolean;
+  type?: "government" | "company";
 }
 
 const Cards = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    image: "",
-    link: "",
-  });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -33,71 +39,68 @@ const Cards = () => {
   });
 
   const queryClient = useQueryClient();
+  const [cookies] = useCookies(["token"]);
 
   // Fetch cards
-  const { data: cards = [], isLoading } = useQuery({
-    queryKey: ["cards"],
-    queryFn: async () => {
-      // في التطبيق الحقيقي، استبدل هذا بـ API endpoint
-      const stored = localStorage.getItem("cards");
-      return stored ? JSON.parse(stored) : [];
-    },
-  });
+  const { data: cards = [], isLoading } = useFetch<Card[]>(
+    API_ENDPOINTS.CARDS.BASE,
+    API_KEYS.CARDS.GET_ALL
+  );
 
   // Create/Update mutation
-  const mutation = useMutation({
-    mutationFn: async (card: Omit<Card, "id"> & { id?: string }) => {
-      // في التطبيق الحقيقي، استبدل هذا بـ API endpoint
-      const stored = localStorage.getItem("cards");
-      const existingCards: Card[] = stored ? JSON.parse(stored) : [];
-
-      if (card.id) {
-        // Update
-        const updated = existingCards.map((c) =>
-          c.id === card.id ? { ...card, id: card.id } : c
-        );
-        localStorage.setItem("cards", JSON.stringify(updated));
-        return updated;
-      } else {
-        // Create
-        const newCard: Card = {
-          ...card,
-          id: Date.now().toString(),
-        };
-        const updated = [...existingCards, newCard];
-        localStorage.setItem("cards", JSON.stringify(updated));
-        return updated;
-      }
+  const { formData, setFormData, setImages, mutation } = usePOST(
+    {
+      title: "",
+      subtitle: "",
+      description: "",
+      link: "",
+      badge: "",
+      preview_url: "",
+      is_coming_soon: false,
+      order: 1,
+      is_active: true,
+      type: "government",
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cards"] });
+    () => {
+      queryClient.invalidateQueries({ queryKey: [API_KEYS.CARDS.GET_ALL] });
       toast.success(
         editingCard ? "تم تحديث الكارد بنجاح" : "تم إضافة الكارد بنجاح"
       );
       setIsModalOpen(false);
       resetForm();
     },
-  });
+    (error: any) => {
+      toast.error(error.response?.data?.message || "حدث خطأ أثناء الحفظ");
+    }
+  );
 
   // Delete mutation
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      // في التطبيق الحقيقي، استبدل هذا بـ API endpoint
-      const stored = localStorage.getItem("cards");
-      const existingCards: Card[] = stored ? JSON.parse(stored) : [];
-      const updated = existingCards.filter((c) => c.id !== id);
-      localStorage.setItem("cards", JSON.stringify(updated));
-      return updated;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cards"] });
+  const { deleteItem, mutation: deleteMutation } = useDelete(
+    () => {
+      queryClient.invalidateQueries({ queryKey: [API_KEYS.CARDS.GET_ALL] });
       toast.success("تم حذف الكارد بنجاح");
+      setDeleteConfirm({ isOpen: false, cardId: null, cardTitle: "" });
     },
-  });
+    (error: any) => {
+      toast.error(error.response?.data?.message || "حدث خطأ أثناء الحذف");
+    }
+  );
 
   const resetForm = () => {
-    setFormData({ title: "", description: "", image: "", link: "" });
+    setFormData({
+      title: "",
+      subtitle: "",
+      description: "",
+      link: "",
+      badge: "",
+      preview_url: "",
+      is_coming_soon: false,
+      order: 1,
+      is_active: true,
+      type: "government",
+    });
     setSelectedImage(null);
+    setImages({});
     setImagePreview("");
     setEditingCard(null);
   };
@@ -106,12 +109,18 @@ const Cards = () => {
     setEditingCard(card);
     setFormData({
       title: card.title,
+      subtitle: card.subtitle || "",
       description: card.description,
-      image: card.image,
       link: card.link,
+      badge: card.badge || "",
+      preview_url: card.preview_url || "",
+      is_coming_soon: card.is_coming_soon || false,
+      order: card.order || 1,
+      is_active: card.is_active !== undefined ? card.is_active : true,
+      type: card.type || "government",
     });
     setSelectedImage(null);
-    setImagePreview(card.image || "");
+    setImagePreview(card.preview_url || "");
     setIsModalOpen(true);
   };
 
@@ -131,11 +140,14 @@ const Cards = () => {
       }
 
       setSelectedImage(file);
+      setImages({ "0": file });
 
       // إنشاء preview للصورة
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        const previewUrl = reader.result as string;
+        setImagePreview(previewUrl);
+        setFormData({ ...formData, preview_url: previewUrl });
       };
       reader.readAsDataURL(file);
     }
@@ -143,8 +155,9 @@ const Cards = () => {
 
   const removeImage = () => {
     setSelectedImage(null);
+    setImages({});
     setImagePreview("");
-    setFormData({ ...formData, image: "" });
+    setFormData({ ...formData, preview_url: "" });
     // إعادة تعيين input file
     const fileInput = document.getElementById(
       "image-input"
@@ -154,32 +167,82 @@ const Cards = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // إذا كانت هناك صورة جديدة مختارة، نحولها إلى base64
-    let imageUrl = formData.image;
+    // إعداد البيانات للإرسال
+    const dataToSend: any = { ...formData };
+
+    // إعداد baseURL
+    let baseUrlValue = apiConfig.baseURL.trim();
+    if (baseUrlValue.endsWith("/")) {
+      baseUrlValue = baseUrlValue.slice(0, -1);
+    }
+    if (!baseUrlValue.endsWith("/api")) {
+      baseUrlValue = baseUrlValue + "/api";
+    }
+    const baseUrl = baseUrlValue + "/";
+
+    const url =
+      editingCard && editingCard.id
+        ? API_ENDPOINTS.CARDS.BY_ID(editingCard.id)
+        : API_ENDPOINTS.CARDS.BASE;
+    const method = editingCard && editingCard.id ? "PUT" : "POST";
+
+    // إرسال كل البيانات كـ FormData (key:value) دائماً
+    const formDataToSend = new FormData();
+
+    // إضافة كل الحقول كـ key:value
+    Object.entries(dataToSend).forEach(([key, value]) => {
+      if (key === "preview_url" && selectedImage) {
+        // سنضيف الصورة كـ file منفصل
+        return;
+      }
+
+      if (value !== null && value !== undefined) {
+        if (typeof value === "boolean") {
+          formDataToSend.append(key, value ? "1" : "0");
+        } else if (typeof value === "number") {
+          formDataToSend.append(key, value.toString());
+        } else if (typeof value === "object") {
+          formDataToSend.append(key, JSON.stringify(value));
+        } else {
+          formDataToSend.append(key, value as string);
+        }
+      }
+    });
+
+    // إضافة الصورة كـ binary file إذا كانت موجودة
     if (selectedImage) {
-      // في التطبيق الحقيقي، يجب رفع الصورة للخادم أولاً
-      // هنا سنستخدم base64 كحل مؤقت
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        imageUrl = reader.result as string;
-        mutation.mutate({
-          ...formData,
-          image: imageUrl,
-          id: editingCard?.id,
-        });
-      };
-      reader.readAsDataURL(selectedImage);
-      return;
+      formDataToSend.append("preview_url", selectedImage);
+    } else if (
+      editingCard?.preview_url &&
+      !editingCard.preview_url.startsWith("data:")
+    ) {
+      // إذا كانت هناك صورة موجودة مسبقاً (URL)، أضفها كـ string
+      formDataToSend.append("preview_url", editingCard.preview_url);
     }
 
-    mutation.mutate({
-      ...formData,
-      image: imageUrl,
-      id: editingCard?.id,
-    });
+    try {
+      const methodToUse = method === "PUT" ? axios.put : axios.post;
+
+      await methodToUse(`${baseUrl}${url}`, formDataToSend, {
+        headers: {
+          Authorization: `Bearer ${cookies.token}`,
+          Accept: "application/json",
+          // لا نضيف Content-Type يدوياً، axios سيقوم بإضافتها تلقائياً مع boundary
+        },
+      });
+
+      queryClient.invalidateQueries({ queryKey: [API_KEYS.CARDS.GET_ALL] });
+      toast.success(
+        editingCard ? "تم تحديث الكارد بنجاح" : "تم إضافة الكارد بنجاح"
+      );
+      setIsModalOpen(false);
+      resetForm();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "حدث خطأ أثناء الحفظ");
+    }
   };
 
   const handleDelete = (id: string, title: string) => {
@@ -192,8 +255,7 @@ const Cards = () => {
 
   const confirmDelete = () => {
     if (deleteConfirm.cardId) {
-      deleteMutation.mutate(deleteConfirm.cardId);
-      setDeleteConfirm({ isOpen: false, cardId: null, cardTitle: "" });
+      deleteItem(API_ENDPOINTS.CARDS.BY_ID(deleteConfirm.cardId));
     }
   };
 
@@ -248,9 +310,9 @@ const Cards = () => {
             {cards.map((card: Card) => (
               <div key={card.id} className="card group">
                 <div className="relative mb-4 rounded-lg overflow-hidden bg-primary-100 aspect-video">
-                  {card.image ? (
+                  {card.preview_url ? (
                     <img
-                      src={card.image}
+                      src={card.preview_url}
                       alt={card.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
@@ -259,10 +321,27 @@ const Cards = () => {
                       🖼️
                     </div>
                   )}
+                  {card.badge && (
+                    <div className="absolute top-2 right-2 bg-primary-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                      {card.badge}
+                    </div>
+                  )}
+                  {card.is_coming_soon && (
+                    <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                      قريباً
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-xl font-bold text-primary-600 mb-2">
-                  {card.title}
-                </h3>
+                <div className="mb-2">
+                  <h3 className="text-xl font-bold text-primary-600">
+                    {card.title}
+                  </h3>
+                  {card.subtitle && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      {card.subtitle}
+                    </p>
+                  )}
+                </div>
                 <p className="text-gray-600 mb-4 line-clamp-2">
                   {card.description}
                 </p>
@@ -284,7 +363,7 @@ const Cards = () => {
                     تعديل
                   </button>
                   <button
-                    onClick={() => handleDelete(card.id, card.title)}
+                    onClick={() => handleDelete(card.id || "", card.title)}
                     className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 text-sm"
                   >
                     حذف
@@ -315,7 +394,7 @@ const Cards = () => {
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={onSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       العنوان *
@@ -328,6 +407,20 @@ const Cards = () => {
                       }
                       className="input-field"
                       required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      العنوان الفرعي
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.subtitle}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subtitle: e.target.value })
+                      }
+                      className="input-field"
                     />
                   </div>
 
@@ -416,6 +509,26 @@ const Cards = () => {
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      النوع *
+                    </label>
+                    <select
+                      value={formData.type || "government"}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          type: e.target.value as "government" | "company",
+                        })
+                      }
+                      className="input-field"
+                      required
+                    >
+                      <option value="government">حكومي</option>
+                      <option value="company">شركة</option>
+                    </select>
+                  </div>
+
                   <div className="flex gap-4 pt-4">
                     <button
                       type="submit"
@@ -460,7 +573,7 @@ const Cards = () => {
                   <p className="text-gray-600">
                     هل أنت متأكد من حذف الكارد{" "}
                     <span className="font-semibold text-primary-600">
-                      &quot;{deleteConfirm.cardTitle}&quot;
+                      {deleteConfirm.cardTitle}
                     </span>
                     ؟
                   </p>
