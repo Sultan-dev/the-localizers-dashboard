@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap");
+
 /* HSN Sara Font */
 @font-face {
   font-family: "HSN Sara";
@@ -43,24 +45,123 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-primary-50 to-primary-100 min-h-screen;
+    @apply bg-gradient-to-br from-primary-50 via-white to-primary-100 min-h-screen font-sans;
+    direction: rtl;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-400 hover:bg-primary-500 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg;
+    @apply bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 
+           text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 
+           shadow-md hover:shadow-lg transform hover:-translate-y-0.5 
+           active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
   }
 
   .btn-secondary {
-    @apply bg-white hover:bg-primary-50 text-primary-600 font-semibold py-2 px-6 rounded-lg transition-all duration-200 border-2 border-primary-400;
+    @apply bg-white hover:bg-primary-50 text-primary-600 font-semibold py-3 px-8 rounded-xl 
+           transition-all duration-300 border-2 border-primary-300 hover:border-primary-400 
+           shadow-sm hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 rounded-lg border-2 border-primary-200 focus:border-primary-400 focus:outline-none transition-all duration-200 bg-white;
+    @apply w-full px-4 py-3 rounded-xl border-2 border-primary-200 focus:border-primary-400 
+           focus:ring-2 focus:ring-primary-200 focus:outline-none transition-all duration-300 
+           bg-white text-gray-800 placeholder-gray-400 hover:border-primary-300;
+  }
+
+  .input-field:focus {
+    @apply shadow-md;
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6;
+    @apply bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 p-6 
+           border border-primary-100/50 backdrop-blur-sm;
+  }
+
+  .card-hover {
+    @apply card hover:scale-[1.02] hover:border-primary-200;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-primary {
+    @apply badge bg-primary-100 text-primary-700;
+  }
+
+  .badge-success {
+    @apply badge bg-green-100 text-green-700;
+  }
+
+  .badge-warning {
+    @apply badge bg-yellow-100 text-yellow-700;
+  }
+
+  .badge-danger {
+    @apply badge bg-red-100 text-red-700;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
