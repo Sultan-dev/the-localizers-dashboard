@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useCookies } from "react-cookie";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useFetch, usePOST, useDelete } from "../hooks/useApi";
 import { API_KEYS, API_ENDPOINTS } from "../config/apiKeys";
@@ -263,38 +264,126 @@ const Cards = () => {
     setDeleteConfirm({ isOpen: false, cardId: null, cardTitle: "" });
   };
 
+  // Calculate active cards (cards that are not coming soon)
+  const activeCards = cards.filter(
+    (card: any) => card.is_active !== false && !card.is_coming_soon
+  );
+
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-primary-600">
-            إدارة الكاردات
+      <div className="space-y-8 animate-slide-up">
+        {/* Welcome Section */}
+        <div className="text-center mb-10">
+          <div className="inline-block mb-4">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg mx-auto transform rotate-3 hover:rotate-6 transition-transform duration-300">
+              <span className="text-4xl">👋</span>
+            </div>
+          </div>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-3">
+            مرحباً بك في لوحة التحكم
           </h1>
-          <button
-            onClick={() => {
-              resetForm();
-              setIsModalOpen(true);
-            }}
-            className="btn-primary"
-          >
-            + إضافة كارد جديد
-          </button>
+          <p className="text-xl text-gray-600">
+            إدارة محتوى موقعك بسهولة وأمان
+          </p>
         </div>
 
-        {isLoading ? (
-          <div className="text-center py-12">
-            <div className="text-4xl mb-4">⏳</div>
-            <p className="text-gray-600">جاري التحميل...</p>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Link to="/cards" className="card-hover group cursor-pointer">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-500 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-3xl">🃏</span>
+              </div>
+              <h3 className="text-xl font-bold text-primary-600 mb-2 group-hover:text-primary-700 transition-colors">
+                إدارة الكاردات
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                أضف، عدّل، أو احذف الكاردات الخاصة بك
+              </p>
+            </div>
+          </Link>
+
+          <Link to="/reviews" className="card-hover group cursor-pointer">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-3xl">⭐</span>
+              </div>
+              <h3 className="text-xl font-bold text-primary-600 mb-2 group-hover:text-primary-700 transition-colors">
+                التقييمات
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                إدارة تقييمات المستخدمين
+              </p>
+            </div>
+          </Link>
+
+          <Link to="/contacts" className="card-hover group cursor-pointer">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-500 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-3xl">📧</span>
+              </div>
+              <h3 className="text-xl font-bold text-primary-600 mb-2 group-hover:text-primary-700 transition-colors">
+                معلومات التواصل
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                عرض جميع رسائل التواصل القادمة من الموقع
+              </p>
+            </div>
+          </Link>
+
+          <div className="card-hover group cursor-pointer">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-500 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
+                <span className="text-3xl">📊</span>
+              </div>
+              <h3 className="text-xl font-bold text-primary-600 mb-2 group-hover:text-primary-700 transition-colors">
+                الإحصائيات
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                عرض إحصائيات مفصلة عن الموقع
+              </p>
+            </div>
           </div>
-        ) : cards.length === 0 ? (
-          <div className="card text-center py-12">
-            <div className="text-6xl mb-4">🃏</div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">
-              لا توجد كاردات بعد
-            </h3>
-            <p className="text-gray-600 mb-4">
-              ابدأ بإضافة كارد جديد لعرضه هنا
-            </p>
+        </div>
+
+        {/* Statistics Section */}
+        <div className="card mt-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-500 rounded-xl flex items-center justify-center">
+              <span className="text-xl">📈</span>
+            </div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
+              إحصائيات سريعة
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gradient-to-br from-primary-50 to-primary-100 p-6 rounded-xl text-center border border-primary-200/50 hover:shadow-md transition-all duration-300">
+              <div className="text-4xl font-bold text-primary-600 mb-2">
+                {isLoading ? "..." : activeCards.length}
+              </div>
+              <div className="text-gray-700 font-medium">الكاردات</div>
+              <div className="text-xs text-gray-500 mt-1">الكاردات النشطة</div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center border border-blue-200/50 hover:shadow-md transition-all duration-300">
+              <div className="text-4xl font-bold text-blue-600 mb-2">0</div>
+              <div className="text-gray-700 font-medium">رسائل التواصل</div>
+              <div className="text-xs text-gray-500 mt-1">الرسائل المستلمة</div>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl text-center border border-green-200/50 hover:shadow-md transition-all duration-300">
+              <div className="text-4xl font-bold text-green-600 mb-2">100%</div>
+              <div className="text-gray-700 font-medium">جاهزية النظام</div>
+              <div className="text-xs text-gray-500 mt-1">
+                جميع الأنظمة تعمل
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-primary-600">
+              إدارة الكاردات
+            </h1>
             <button
               onClick={() => {
                 resetForm();
@@ -302,305 +391,331 @@ const Cards = () => {
               }}
               className="btn-primary"
             >
-              إضافة كارد جديد
+              + إضافة كارد جديد
             </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cards.map((card: Card) => (
-              <div key={card.id} className="card group">
-                <div className="relative mb-4 rounded-lg overflow-hidden bg-primary-100 aspect-video">
-                  {card.preview_url ? (
-                    <img
-                      src={card.preview_url}
-                      alt={card.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl">
-                      🖼️
-                    </div>
-                  )}
-                  {card.badge && (
-                    <div className="absolute top-2 right-2 bg-primary-500 text-white px-2 py-1 rounded text-sm font-semibold">
-                      {card.badge}
-                    </div>
-                  )}
-                  {card.is_coming_soon && (
-                    <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded text-sm font-semibold">
-                      قريباً
-                    </div>
-                  )}
-                </div>
-                <div className="mb-2">
-                  <h3 className="text-xl font-bold text-primary-600">
-                    {card.title}
-                  </h3>
-                  {card.subtitle && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      {card.subtitle}
-                    </p>
-                  )}
-                </div>
-                <p className="text-gray-600 mb-4 line-clamp-2">
-                  {card.description}
-                </p>
-                {card.link && (
-                  <a
-                    href={card.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary-500 hover:text-primary-600 text-sm font-semibold mb-4 inline-block"
-                  >
-                    زيارة الرابط →
-                  </a>
-                )}
-                <div className="flex gap-2 mt-4">
-                  <button
-                    onClick={() => handleEdit(card)}
-                    className="flex-1 btn-secondary text-sm"
-                  >
-                    تعديل
-                  </button>
-                  <button
-                    onClick={() => handleDelete(card.id || "", card.title)}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 text-sm"
-                  >
-                    حذف
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
-        {/* Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-primary-600">
-                    {editingCard ? "تعديل الكارد" : "إضافة كارد جديد"}
-                  </h2>
-                  <button
-                    onClick={() => {
-                      setIsModalOpen(false);
-                      resetForm();
-                    }}
-                    className="text-gray-500 hover:text-gray-700 text-2xl"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <form onSubmit={onSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      العنوان *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.title}
-                      onChange={(e) =>
-                        setFormData({ ...formData, title: e.target.value })
-                      }
-                      className="input-field"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      العنوان الفرعي
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.subtitle}
-                      onChange={(e) =>
-                        setFormData({ ...formData, subtitle: e.target.value })
-                      }
-                      className="input-field"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      الوصف *
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          description: e.target.value,
-                        })
-                      }
-                      className="input-field min-h-[100px]"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      الصورة *
-                    </label>
-
-                    {/* عرض الصورة المختارة */}
-                    {imagePreview && (
-                      <div className="mb-4 relative">
-                        <div className="relative w-full h-48 rounded-lg overflow-hidden bg-primary-100 border-2 border-primary-200">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={removeImage}
-                            className="absolute top-2 left-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                            title="إزالة الصورة"
-                          >
-                            ×
-                          </button>
-                        </div>
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="text-4xl mb-4">⏳</div>
+              <p className="text-gray-600">جاري التحميل...</p>
+            </div>
+          ) : cards.length === 0 ? (
+            <div className="card text-center py-12">
+              <div className="text-6xl mb-4">🃏</div>
+              <h3 className="text-xl font-bold text-gray-700 mb-2">
+                لا توجد كاردات بعد
+              </h3>
+              <p className="text-gray-600 mb-4">
+                ابدأ بإضافة كارد جديد لعرضه هنا
+              </p>
+              <button
+                onClick={() => {
+                  resetForm();
+                  setIsModalOpen(true);
+                }}
+                className="btn-primary"
+              >
+                إضافة كارد جديد
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {cards.map((card: Card) => (
+                <div key={card.id} className="card group">
+                  <div className="relative mb-4 rounded-lg overflow-hidden bg-primary-100 aspect-video">
+                    {card.preview_url ? (
+                      <img
+                        src={card.preview_url}
+                        alt={card.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-4xl">
+                        🖼️
                       </div>
                     )}
-
-                    {/* زر اختيار الصورة */}
-                    <div className="relative">
-                      <input
-                        id="image-input"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="image-input"
-                        className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg border-2 border-dashed border-primary-300 bg-primary-50 hover:bg-primary-100 cursor-pointer transition-colors"
-                      >
-                        <span className="text-2xl">📷</span>
-                        <span className="text-primary-600 font-semibold">
-                          {imagePreview
-                            ? "تغيير الصورة"
-                            : "اختر صورة من الملفات"}
-                        </span>
-                      </label>
-                    </div>
-
-                    <p className="text-xs text-gray-500 mt-2">
-                      الصيغ المدعومة: JPG, PNG, GIF. الحد الأقصى: 5MB
-                    </p>
+                    {card.badge && (
+                      <div className="absolute top-2 right-2 bg-primary-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                        {card.badge}
+                      </div>
+                    )}
+                    {card.is_coming_soon && (
+                      <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded text-sm font-semibold">
+                        قريباً
+                      </div>
+                    )}
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      الرابط
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.link}
-                      onChange={(e) =>
-                        setFormData({ ...formData, link: e.target.value })
-                      }
-                      className="input-field"
-                      placeholder="https://example.com"
-                    />
+                  <div className="mb-2">
+                    <h3 className="text-xl font-bold text-primary-600">
+                      {card.title}
+                    </h3>
+                    {card.subtitle && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        {card.subtitle}
+                      </p>
+                    )}
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      النوع *
-                    </label>
-                    <select
-                      value={formData.type || "government"}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          type: e.target.value as "government" | "company",
-                        })
-                      }
-                      className="input-field"
-                      required
+                  <p className="text-gray-600 mb-4 line-clamp-2">
+                    {card.description}
+                  </p>
+                  {card.link && (
+                    <a
+                      href={card.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-500 hover:text-primary-600 text-sm font-semibold mb-4 inline-block"
                     >
-                      <option value="government">حكومي</option>
-                      <option value="company">شركة</option>
-                    </select>
-                  </div>
-
-                  <div className="flex gap-4 pt-4">
+                      زيارة الرابط →
+                    </a>
+                  )}
+                  <div className="flex gap-2 mt-4">
                     <button
-                      type="submit"
-                      disabled={mutation.isPending}
-                      className="btn-primary flex-1 disabled:opacity-50"
+                      onClick={() => handleEdit(card)}
+                      className="flex-1 btn-secondary text-sm"
                     >
-                      {mutation.isPending
-                        ? "جاري الحفظ..."
-                        : editingCard
-                        ? "تحديث"
-                        : "إضافة"}
+                      تعديل
                     </button>
                     <button
-                      type="button"
+                      onClick={() => handleDelete(card.id || "", card.title)}
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 text-sm"
+                    >
+                      حذف
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Modal */}
+          {isModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-primary-600">
+                      {editingCard ? "تعديل الكارد" : "إضافة كارد جديد"}
+                    </h2>
+                    <button
                       onClick={() => {
                         setIsModalOpen(false);
                         resetForm();
                       }}
-                      className="btn-secondary flex-1"
+                      className="text-gray-500 hover:text-gray-700 text-2xl"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <form onSubmit={onSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        العنوان *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) =>
+                          setFormData({ ...formData, title: e.target.value })
+                        }
+                        className="input-field"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        العنوان الفرعي
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.subtitle}
+                        onChange={(e) =>
+                          setFormData({ ...formData, subtitle: e.target.value })
+                        }
+                        className="input-field"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        الوصف *
+                      </label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            description: e.target.value,
+                          })
+                        }
+                        className="input-field min-h-[100px]"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        الصورة *
+                      </label>
+
+                      {/* عرض الصورة المختارة */}
+                      {imagePreview && (
+                        <div className="mb-4 relative">
+                          <div className="relative w-full h-48 rounded-lg overflow-hidden bg-primary-100 border-2 border-primary-200">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeImage}
+                              className="absolute top-2 left-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                              title="إزالة الصورة"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* زر اختيار الصورة */}
+                      <div className="relative">
+                        <input
+                          id="image-input"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="image-input"
+                          className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg border-2 border-dashed border-primary-300 bg-primary-50 hover:bg-primary-100 cursor-pointer transition-colors"
+                        >
+                          <span className="text-2xl">📷</span>
+                          <span className="text-primary-600 font-semibold">
+                            {imagePreview
+                              ? "تغيير الصورة"
+                              : "اختر صورة من الملفات"}
+                          </span>
+                        </label>
+                      </div>
+
+                      <p className="text-xs text-gray-500 mt-2">
+                        الصيغ المدعومة: JPG, PNG, GIF. الحد الأقصى: 5MB
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        الرابط
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.link}
+                        onChange={(e) =>
+                          setFormData({ ...formData, link: e.target.value })
+                        }
+                        className="input-field"
+                        placeholder="https://example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        النوع *
+                      </label>
+                      <select
+                        value={formData.type || "government"}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            type: e.target.value as "government" | "company",
+                          })
+                        }
+                        className="input-field"
+                        required
+                      >
+                        <option value="government">حكومي</option>
+                        <option value="company">شركة</option>
+                      </select>
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
+                      <button
+                        type="submit"
+                        disabled={mutation.isPending}
+                        className="btn-primary flex-1 disabled:opacity-50"
+                      >
+                        {mutation.isPending
+                          ? "جاري الحفظ..."
+                          : editingCard
+                          ? "تحديث"
+                          : "إضافة"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsModalOpen(false);
+                          resetForm();
+                        }}
+                        className="btn-secondary flex-1"
+                      >
+                        إلغاء
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirmation Popup */}
+          {deleteConfirm.isOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-xl shadow-2xl max-w-md w-full animate-in fade-in zoom-in duration-200">
+                <div className="p-6">
+                  <div className="text-center mb-6">
+                    <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                      <span className="text-3xl">🗑️</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      تأكيد الحذف
+                    </h3>
+                    <p className="text-gray-600">
+                      هل أنت متأكد من حذف الكارد{" "}
+                      <span className="font-semibold text-primary-600">
+                        {deleteConfirm.cardTitle}
+                      </span>
+                      ؟
+                    </p>
+                    <p className="text-sm text-red-600 mt-2">
+                      لا يمكن التراجع عن هذا الإجراء
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={cancelDelete}
+                      className="flex-1 btn-secondary"
                     >
                       إلغاء
                     </button>
+                    <button
+                      onClick={confirmDelete}
+                      disabled={deleteMutation.isPending}
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {deleteMutation.isPending ? "جاري الحذف..." : "حذف"}
+                    </button>
                   </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Confirmation Popup */}
-        {deleteConfirm.isOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full animate-in fade-in zoom-in duration-200">
-              <div className="p-6">
-                <div className="text-center mb-6">
-                  <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
-                    <span className="text-3xl">🗑️</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    تأكيد الحذف
-                  </h3>
-                  <p className="text-gray-600">
-                    هل أنت متأكد من حذف الكارد{" "}
-                    <span className="font-semibold text-primary-600">
-                      {deleteConfirm.cardTitle}
-                    </span>
-                    ؟
-                  </p>
-                  <p className="text-sm text-red-600 mt-2">
-                    لا يمكن التراجع عن هذا الإجراء
-                  </p>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={cancelDelete}
-                    className="flex-1 btn-secondary"
-                  >
-                    إلغاء
-                  </button>
-                  <button
-                    onClick={confirmDelete}
-                    disabled={deleteMutation.isPending}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {deleteMutation.isPending ? "جاري الحذف..." : "حذف"}
-                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </Layout>
   );
