@@ -10,27 +10,33 @@ import React, {
 import { useCookies } from "react-cookie";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
+// import type { Selection, SelectionMode } from "@heroui/react";
 type Selection = any;
 type SelectionMode = any;
 import apiConfig from "../config/api";
 
 // Base URLs
+// Remove trailing slash
 let baseUrlValue = apiConfig.baseURL.trim();
 if (baseUrlValue.endsWith("/")) {
   baseUrlValue = baseUrlValue.slice(0, -1);
 }
+// If baseURL doesn't end with /api, add it
 if (!baseUrlValue.endsWith("/api")) {
   baseUrlValue = baseUrlValue + "/api";
 }
 export const baseUrl = baseUrlValue + "/";
 export const fileURL = baseUrlValue.replace("/api", "/storage") + "/";
 export const websiteFileURL = baseUrlValue.replace("/api", "") + "/";
+
+// Base URL for v3 website APIs
 export const websiteBaseUrl = baseUrlValue.replace("/api", "/api/v3") + "/";
 
 export const getWebsiteApiUrl = (path: string) => {
   return `${websiteBaseUrl}website/${path}`;
 };
 
+// Hook for fetching website admin APIs (uses v3 instead of v1)
 export const useFetchWebsite = <T>(
   path: string,
   key: string,
@@ -38,8 +44,10 @@ export const useFetchWebsite = <T>(
 ) => {
   const [cookies, , removeCookie] = useCookies(["token"]);
   const navigate = useNavigate();
+  const [isEnabled] = useState(enabled === undefined ? true : enabled);
 
   const fetchData = async (): Promise<T> => {
+    // Use v3 base URL for website APIs
     const fullPath = `admin/website/${path}`;
     const response = await axios.get<T>(`${websiteBaseUrl}${fullPath}`, {
       headers: {
@@ -55,7 +63,7 @@ export const useFetchWebsite = <T>(
   const query = useQuery<T, AxiosError>({
     queryKey: [key],
     queryFn: fetchData,
-    enabled: enabled !== undefined ? enabled : true,
+    enabled: isEnabled,
   });
 
   useEffect(() => {
@@ -64,6 +72,7 @@ export const useFetchWebsite = <T>(
       const status = err.response?.status;
       if (status === 401) {
         removeCookie("token");
+        navigate("/login");
       } else if (status === 403) {
         navigate("/403");
       } else if (status === 500) {
@@ -72,21 +81,17 @@ export const useFetchWebsite = <T>(
     }
   }, [query.error, removeCookie, navigate]);
 
-  useEffect(() => {
-    if (enabled === undefined) {
-      query.refetch();
-    }
-  }, [path, enabled, query]);
-
   return query;
 };
 
 export const useFetch = <T>(url: string, key: string, enabled?: boolean) => {
   const [cookies, , removeCookie] = useCookies(["token"]);
   const navigate = useNavigate();
+  const [isEnabled] = useState(enabled === undefined ? true : enabled);
 
+  // Check if URL is valid (not empty)
   const isValidUrl = Boolean(url && url.trim().length > 0);
-  const shouldFetch = (enabled !== undefined ? enabled : true) && isValidUrl;
+  const shouldFetch = isEnabled && isValidUrl;
 
   const fetchData = async (): Promise<T> => {
     if (!isValidUrl) {
@@ -115,6 +120,7 @@ export const useFetch = <T>(url: string, key: string, enabled?: boolean) => {
       const status = err.response?.status;
       if (status === 401) {
         removeCookie("token");
+        navigate("/login");
       } else if (status === 403) {
         navigate("/403");
       } else if (status === 500) {
@@ -122,12 +128,6 @@ export const useFetch = <T>(url: string, key: string, enabled?: boolean) => {
       }
     }
   }, [query.error, removeCookie, navigate]);
-
-  useEffect(() => {
-    if (enabled === undefined) {
-      query.refetch();
-    }
-  }, [url, enabled, query]);
 
   return query;
 };
@@ -165,7 +165,7 @@ export const usePOST = <FormDataType extends Record<string, any>>(
   actionSuccess: (data: any) => void,
   actionError: (error: any) => void
 ) => {
-  const [cookies] = useCookies(["token"]);
+  const [cookies, , removeCookie] = useCookies(["token"]);
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormDataType>(initialData);
   const [images, setImages] = useState<FilesState>({});
@@ -177,8 +177,10 @@ export const usePOST = <FormDataType extends Record<string, any>>(
     (data?: FormDataType) => {
       const dataToProcess = data || formData;
 
+      // Check if there are any files in the data or images state
       let hasFiles = Object.keys(images).length > 0;
 
+      // Also check if data contains any File or Blob objects
       if (!hasFiles) {
         for (const value of Object.values(dataToProcess)) {
           if (value instanceof File || value instanceof Blob) {
@@ -188,12 +190,14 @@ export const usePOST = <FormDataType extends Record<string, any>>(
         }
       }
 
+      // If there are no files, return JSON data
       if (!hasFiles) {
         const jsonData: any = {};
 
         for (const [key, value] of Object.entries(dataToProcess)) {
           if (value === null || value === undefined) continue;
 
+          // Skip File and Blob objects when sending JSON
           if (value instanceof File || value instanceof Blob) {
             continue;
           }
@@ -210,16 +214,20 @@ export const usePOST = <FormDataType extends Record<string, any>>(
         return jsonData;
       }
 
+      // If there are files, use FormData
       const formDataToSend = new FormData();
 
       for (const [key, value] of Object.entries(dataToProcess)) {
         if (value === null || value === undefined) continue;
 
+        // Handle arrays (like curriculum_ids: [1, 2, 3])
         if (Array.isArray(value)) {
           for (let i = 0; i < value.length; i++) {
             formDataToSend.append(`${key}[]`, String(value[i]));
           }
-        } else if (
+        }
+        // Handle nested objects (like seo: { title: "...", description: "..." })
+        else if (
           typeof value === "object" &&
           !(value instanceof File) &&
           !(value instanceof Blob)
@@ -268,6 +276,7 @@ export const usePOST = <FormDataType extends Record<string, any>>(
     }) => {
       const dataToSend = prepareFormData(data);
 
+      // Check if dataToSend is FormData or plain object (JSON)
       const isFormData = dataToSend instanceof FormData;
 
       const methodToUse =
@@ -277,15 +286,18 @@ export const usePOST = <FormDataType extends Record<string, any>>(
           ? axios.patch
           : axios.post;
 
+      // Use v3 base URL for website APIs, otherwise use v1
       const apiBaseUrl = url.startsWith("admin/website/")
         ? websiteBaseUrl
         : baseUrl;
 
+      // Set headers based on whether we're sending JSON or FormData
       const headers: any = {
         Authorization: `Bearer ${cookies.token}`,
         Accept: "application/json",
       };
 
+      // Only set Content-Type for JSON (FormData will set it automatically with boundary)
       if (!isFormData) {
         headers["Content-Type"] = "application/json";
       }
@@ -305,7 +317,8 @@ export const usePOST = <FormDataType extends Record<string, any>>(
       const err = error as AxiosError;
       const status = err.response?.status;
       if (status === 401) {
-        // navigate("/auth/signin");
+        removeCookie("token");
+        navigate("/login");
       } else if (status === 403) {
         navigate("/403");
       } else if (status === 500) {
@@ -501,11 +514,12 @@ export const useDelete = (
   actionSuccess: (data?: any) => void,
   actionError: (data?: any) => void
 ) => {
-  const [cookies] = useCookies(["token"]);
+  const [cookies, , removeCookie] = useCookies(["token"]);
   const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: (url: string) => {
+      // Use v3 base URL for website APIs, otherwise use v1
       const apiBaseUrl = url.startsWith("admin/website/")
         ? websiteBaseUrl
         : baseUrl;
@@ -527,7 +541,8 @@ export const useDelete = (
       const err = error as AxiosError;
       const status = err.response?.status;
       if (status === 401) {
-        // navigate("/auth/signin");
+        removeCookie("token");
+        navigate("/login");
       } else if (status === 403) {
         navigate("/403");
       } else if (status === 500) {
