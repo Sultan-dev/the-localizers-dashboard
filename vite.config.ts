@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000, // بورت مخصص للداشبورد
+    port: 8080, // بورت مخصص للداشبورد
     host: true, // للوصول من الشبكة المحلية
     strictPort: false, // إذا كان البورت مشغول، جرب بورت آخر
     proxy: {
