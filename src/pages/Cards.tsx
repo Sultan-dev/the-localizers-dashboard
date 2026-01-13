@@ -7,7 +7,7 @@ import Layout from "../components/Layout";
 import { useFetch, usePOST, useDelete } from "../hooks/useApi";
 import { API_KEYS, API_ENDPOINTS } from "../config/apiKeys";
 import apiConfig from "../config/api";
-import { normalizeStorageUrl, getStorageBaseUrl } from "../lib/storage";
+import { normalizeStorageUrl } from "../lib/storage";
 
 interface Card {
   id?: string;
