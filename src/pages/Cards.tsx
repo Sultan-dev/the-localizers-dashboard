@@ -7,6 +7,7 @@ import Layout from "../components/Layout";
 import { useFetch, usePOST, useDelete } from "../hooks/useApi";
 import { API_KEYS, API_ENDPOINTS } from "../config/apiKeys";
 import apiConfig from "../config/api";
+import { normalizeStorageUrl } from "../lib/storage";
 
 interface Card {
   id?: string;
@@ -106,7 +107,9 @@ const Cards = () => {
 
   const handleEdit = (card: Card) => {
     setEditingCard(card);
-    const previewUrl = card.preview_url || card.preview_image || "";
+    const previewUrl = normalizeStorageUrl(
+      card.preview_url || card.preview_image
+    );
     console.log("Editing card preview URL:", previewUrl, "card:", card);
     setFormData({
       title: card.title,
@@ -315,9 +318,14 @@ const Cards = () => {
                 <div className="relative mb-4 rounded-lg overflow-hidden bg-primary-100 aspect-video">
                   {card.preview_url || card.preview_image ? (
                     <img
-                      src={card.preview_url || card.preview_image}
+                      src={normalizeStorageUrl(
+                        card.preview_url || card.preview_image
+                      )}
                       alt={card.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-4xl">
