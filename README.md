@@ -58,6 +58,37 @@ npm run dev -- --port 3001
 npm run build
 ```
 
+## إدارة التخزين (Storage)
+
+الداشبورد يدعم تحميل الصور وتخزينها على الخادم. الصور يتم رفعها كـ FormData مع الطلب إلى API.
+
+### كيفية عمل التخزين:
+
+1. **رفع الصور**: عند إضافة أو تعديل كارد، يمكنك اختيار صورة من جهازك
+2. **تحزين الصور**: الصور يتم حفظها في مجلد `/storage` على الخادم
+3. **عرض الصور**: الصور تُعرض من خلال URL نسبي يتم تحويله إلى عنوان مطلق باستخدام دالة `normalizeStorageUrl()`
+
+### استخدام Storage URLs:
+
+```typescript
+import { normalizeStorageUrl, getStorageBaseUrl } from "@/lib/storage";
+
+// تحويل URL نسبي إلى عنوان مطلق
+const absoluteUrl = normalizeStorageUrl("cards/image.jpg");
+// النتيجة: http://192.168.1.128:8000/storage/cards/image.jpg
+
+// الحصول على base URL للتخزين
+const storageBase = getStorageBaseUrl();
+// النتيجة: http://192.168.1.128:8000/storage/
+```
+
+### المميزات:
+
+- ✅ دعم الصور المطلقة (http/https)
+- ✅ دعم الصور النسبية (storage paths)
+- ✅ معالجة تلقائية للمسارات الخاطئة
+- ✅ fallback إلى رمز emoji عند عدم وجود صورة
+
 ## الاستخدام
 
 1. افتح المتصفح على `http://localhost:3000` (البورت الافتراضي للداشبورد)
