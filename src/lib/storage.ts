@@ -17,6 +17,15 @@ export const getStorageBaseUrl = (): string => {
     baseUrlValue = baseUrlValue.slice(0, -4);
   }
 
+  // If page is served over HTTPS, prefer HTTPS for base URL
+  if (
+    typeof window !== "undefined" &&
+    window.location.protocol === "https:" &&
+    baseUrlValue.startsWith("http://")
+  ) {
+    baseUrlValue = "https://" + baseUrlValue.slice("http://".length);
+  }
+
   return baseUrlValue + "/storage/";
 };
 
@@ -37,7 +46,17 @@ export const normalizeStorageUrl = (
 
   // Absolute URLs are used as-is
   const isAbsolute = /^https?:\/\//i.test(trimmed);
-  if (isAbsolute) return trimmed;
+  if (isAbsolute) {
+    // Auto-upgrade to HTTPS when current page is HTTPS to avoid mixed content
+    if (
+      trimmed.startsWith("http://") &&
+      typeof window !== "undefined" &&
+      window.location.protocol === "https:"
+    ) {
+      return "https://" + trimmed.slice("http://".length);
+    }
+    return trimmed;
+  }
 
   // Clean leading slashes
   const sanitized = trimmed.replace(/^\/+/, "");
