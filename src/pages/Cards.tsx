@@ -197,8 +197,8 @@ const Cards = () => {
 
     // إضافة كل الحقول كـ key:value
     Object.entries(dataToSend).forEach(([key, value]) => {
-      if (key === "preview_image" && selectedImage) {
-        // سنضيف الصورة كـ file منفصل
+      // تخطي preview_image لأنه سيتم إضافته كملف منفصل أو كـ preview_url
+      if (key === "preview_image") {
         return;
       }
 
