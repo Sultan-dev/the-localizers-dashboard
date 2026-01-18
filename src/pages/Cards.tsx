@@ -46,7 +46,7 @@ const Cards = () => {
   // Fetch cards
   const { data: cards = [], isLoading } = useFetch<Card[]>(
     API_ENDPOINTS.CARDS.BASE,
-    API_KEYS.CARDS.GET_ALL
+    API_KEYS.CARDS.GET_ALL,
   );
 
   // Create/Update mutation
@@ -65,14 +65,14 @@ const Cards = () => {
     () => {
       queryClient.invalidateQueries({ queryKey: [API_KEYS.CARDS.GET_ALL] });
       toast.success(
-        editingCard ? "تم تحديث الكارد بنجاح" : "تم إضافة الكارد بنجاح"
+        editingCard ? "تم تحديث الكارد بنجاح" : "تم إضافة الكارد بنجاح",
       );
       setIsModalOpen(false);
       resetForm();
     },
     (error: any) => {
       toast.error(error.response?.data?.message || "حدث خطأ أثناء الحفظ");
-    }
+    },
   );
 
   // Delete mutation
@@ -84,7 +84,7 @@ const Cards = () => {
     },
     (error: any) => {
       toast.error(error.response?.data?.message || "حدث خطأ أثناء الحذف");
-    }
+    },
   );
 
   const resetForm = () => {
@@ -108,7 +108,7 @@ const Cards = () => {
   const handleEdit = (card: Card) => {
     setEditingCard(card);
     const previewUrl = normalizeStorageUrl(
-      card.preview_url || card.preview_image
+      card.preview_url || card.preview_image,
     );
     console.log("Editing card preview URL:", previewUrl, "card:", card);
     setFormData({
@@ -163,7 +163,7 @@ const Cards = () => {
     setFormData({ ...formData, preview_image: "" });
     // إعادة تعيين input file
     const fileInput = document.getElementById(
-      "image-input"
+      "image-input",
     ) as HTMLInputElement;
     if (fileInput) {
       fileInput.value = "";
@@ -222,8 +222,9 @@ const Cards = () => {
       const existingPreviewUrl =
         editingCard.preview_url || editingCard.preview_image;
       if (existingPreviewUrl && !existingPreviewUrl.startsWith("data:")) {
-        // إذا كانت هناك صورة موجودة مسبقاً (URL)، أضفها كـ string
-        formDataToSend.append("preview_image", existingPreviewUrl);
+        // إذا كانت هناك صورة موجودة مسبقاً (URL)، أضفها كـ preview_url وليس preview_image
+        // لأن preview_image يجب أن يكون ملف وليس string
+        formDataToSend.append("preview_url", existingPreviewUrl);
       }
     }
 
@@ -240,7 +241,7 @@ const Cards = () => {
 
       queryClient.invalidateQueries({ queryKey: [API_KEYS.CARDS.GET_ALL] });
       toast.success(
-        editingCard ? "تم تحديث الكارد بنجاح" : "تم إضافة الكارد بنجاح"
+        editingCard ? "تم تحديث الكارد بنجاح" : "تم إضافة الكارد بنجاح",
       );
       setIsModalOpen(false);
       resetForm();
@@ -319,7 +320,7 @@ const Cards = () => {
                   {card.preview_url || card.preview_image ? (
                     <img
                       src={normalizeStorageUrl(
-                        card.preview_url || card.preview_image
+                        card.preview_url || card.preview_image,
                       )}
                       alt={card.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
@@ -468,7 +469,7 @@ const Cards = () => {
                             onError={(e) => {
                               console.error(
                                 "Image failed to load:",
-                                imagePreview
+                                imagePreview,
                               );
                               e.currentTarget.style.display = "none";
                             }}
